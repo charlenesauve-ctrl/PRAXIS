@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="PRAXIS — Strategic decision-support simulator for defence stakeholders. Integrate geopolitics, supply chain, and economics to anticipate crises.">
+<meta name="author" content="PRAXIS Strategy">
+<meta name="theme-color" content="#00e5ff">
+<title>PRAXIS – Strategic Decision Support</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--bg2:#0c1122;--bg3:#111a30;
+  --cyan:#00e5ff;--orange:#ff5e1f;--green:#6dffb3;--amber:#ffb830;
+  --text:#dde6f5;--muted:#5a7090;
+  --border:rgba(0,229,255,0.1);--border-h:rgba(0,229,255,0.25)
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;font-weight:300;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);
+  background-size:56px 56px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;
+  background:rgba(7,9,15,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 5%}
+.logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;
+  color:var(--cyan);letter-spacing:5px;cursor:pointer}
+.nav-links{display:flex;gap:4px;list-style:none}
+.nav-links a{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);text-decoration:none;
+  padding:7px 14px;border-radius:2px;transition:all .2s;cursor:pointer;border:1px solid transparent}
+.nav-links a:hover{color:var(--text)}
+.nav-links a.active{color:var(--cyan);border-color:var(--border)}
+.nav-cta{background:var(--cyan)!important;color:var(--bg)!important;font-weight:600!important;border-color:var(--cyan)!important}
+.nav-cta:hover{background:#00c8e0!important;color:var(--bg)!important}
+
+.page{display:none;min-height:100vh;position:relative;z-index:1;overflow:hidden}
+.page.active{display:block;overflow:visible}
+
+.btn-primary{background:var(--cyan);color:var(--bg);border:none;padding:14px 36px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-primary:hover{background:#00c8e0;transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid rgba(221,230,245,.18);padding:14px 36px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.s-tag{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.s-tag::before{content:'//';opacity:.4}
+.s-h2{font-family:'Orbitron',monospace;font-size:clamp(24px,3.5vw,40px);font-weight:700;line-height:1.1;margin-bottom:14px}
+.s-p{font-size:14px;color:var(--muted);max-width:480px;line-height:1.9;margin-bottom:48px}
+.section{padding:88px 5%;position:relative;z-index:1}
+.section-inner{max-width:1080px;margin:0 auto}
+
+footer{position:relative;z-index:1;padding:28px 5%;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.footer-logo{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--cyan);letter-spacing:4px;cursor:pointer}
+.footer-nav{display:flex;gap:20px;list-style:none}
+.footer-nav a{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-decoration:none;letter-spacing:2px;cursor:pointer;transition:color .2s}
+.footer-nav a:hover{color:var(--cyan)}
+.footer-copy{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 5% 80px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(109,255,179,.3);border-radius:100px;padding:5px 16px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:32px}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.hero-eyebrow{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:5px;margin-bottom:16px;opacity:.6}
+.hero-h1{font-family:'Orbitron',monospace;font-size:clamp(60px,10vw,130px);font-weight:900;line-height:.88;letter-spacing:-3px;margin-bottom:16px}
+.h1-solid{color:var(--text);display:block}
+.h1-outline{color:transparent;-webkit-text-stroke:1.5px var(--cyan);display:block}
+.hero-tagline{font-family:'Orbitron',monospace;font-size:clamp(10px,1.4vw,14px);color:var(--muted);letter-spacing:5px;text-transform:uppercase;margin-bottom:36px}
+.hero-p{max-width:520px;font-size:15px;color:var(--muted);line-height:1.9;margin-bottom:48px}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:64px}
+.stats-row{display:flex;border:1px solid var(--border);border-radius:2px;overflow:hidden;width:100%;max-width:760px}
+.stat{flex:1;padding:20px 16px;text-align:center;border-right:1px solid var(--border);background:rgba(12,17,34,.7)}
+.stat:last-child{border-right:none}
+.stat-n{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:var(--cyan);display:block}
+.stat-l{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;display:block}
+
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:2px;overflow:hidden}
+.pillar{background:var(--bg2);padding:32px 26px;position:relative;transition:background .25s}
+.pillar:hover{background:var(--bg3)}
+.pillar-bar{position:absolute;top:0;left:0;width:3px;height:100%}
+.pillar-code{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:14px;display:block;opacity:.7}
+.pillar-t{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;margin-bottom:10px}
+.pillar-d{font-size:13px;color:var(--muted);line-height:1.8}
+
+.value-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:48px}
+.value-card{border:1px solid var(--border);border-radius:2px;padding:24px 24px 24px 28px;background:rgba(12,17,34,.5);position:relative;transition:border-color .25s}
+.value-card:hover{border-color:var(--border-h)}
+.value-card-bar{position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:2px 0 0 2px}
+.value-card-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;margin-bottom:8px}
+.value-card-desc{font-size:13px;color:var(--muted);line-height:1.8}
+
+.engine-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-bottom:32px}
+.engine-step{background:var(--bg2);padding:22px 18px;text-align:center}
+.engine-step-num{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:rgba(0,229,255,.12);margin-bottom:8px}
+.engine-step-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:1px;margin-bottom:8px;line-height:1.4}
+.engine-step-desc{font-size:11px;color:var(--muted);line-height:1.7}
+
+.diff-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.diff-item{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;border:1px solid var(--border);border-radius:2px;background:rgba(12,17,34,.4)}
+.diff-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0;margin-top:4px}
+.diff-text{font-size:13px;color:var(--muted);line-height:1.75}
+.diff-text strong{color:var(--text);font-weight:500}
+
+.cibles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.cible{border:1px solid var(--border);border-radius:2px;padding:24px;background:rgba(12,17,34,.5);transition:border-color .25s}
+.cible:hover{border-color:var(--border-h)}
+.cible-r{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--orange);margin-bottom:6px}
+.cible-d{font-size:13px;color:var(--muted);line-height:1.8}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.price-card{border:1px solid var(--border);border-radius:3px;padding:28px 24px;background:var(--bg2);position:relative;transition:border-color .25s}
+.price-card.featured{border-color:var(--cyan);background:rgba(0,229,255,.03)}
+.price-card-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--cyan);color:var(--bg);font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:2px;padding:3px 12px;border-radius:100px;white-space:nowrap}
+.price-tier{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:3px;margin-bottom:16px}
+.price-amount{font-family:'Orbitron',monospace;font-size:36px;font-weight:900;line-height:1;margin-bottom:4px}
+.price-period{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:20px;display:block}
+.price-divider{height:1px;background:var(--border);margin-bottom:16px}
+.price-feature{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;padding:5px 0;display:flex;align-items:center;gap:8px}
+.price-feature::before{content:'✓';color:var(--green);font-size:10px}
+.price-btn{width:100%;margin-top:20px;padding:10px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .2s;font-weight:700}
+.price-btn-outline{background:transparent;border:1px solid var(--border-h);color:var(--text)}
+.price-btn-outline:hover{border-color:var(--cyan);color:var(--cyan)}
+.price-btn-filled{background:var(--cyan);border:none;color:var(--bg)}
+.price-btn-filled:hover{background:#00c8e0}
+.pricing-note{text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px}
+
+.home-cta{text-align:center;border:1px solid var(--border);margin:0 5% 80px;padding:64px 5%;background:rgba(12,17,34,.6);border-radius:2px;position:relative;overflow:hidden;z-index:1}
+.home-cta::before{content:'PRAXIS';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',monospace;font-size:180px;font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(0,229,255,.04);pointer-events:none;white-space:nowrap}
+.home-cta h2{font-family:'Orbitron',monospace;font-size:clamp(20px,3vw,34px);font-weight:700;margin-bottom:14px;position:relative}
+.home-cta p{font-size:14px;color:var(--muted);margin-bottom:32px;position:relative}
+
+/* SIMULATOR */
+.sim-header{padding:48px 5% 36px;border-bottom:1px solid var(--border);background:rgba(12,17,34,.4)}
+.sim-header-inner{max-width:1080px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.sim-header h1{font-family:'Orbitron',monospace;font-size:clamp(24px,4vw,40px);font-weight:900;line-height:1.05}
+.sim-header h1 span{color:var(--cyan)}
+.sim-header p{font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-top:10px}
+.sim-live-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(109,255,179,.25);border-radius:100px;padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--green);letter-spacing:2px;white-space:nowrap;flex-shrink:0}
+.sim-body{max-width:1080px;margin:0 auto;padding:36px 5% 80px;display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:start}
+
+.scenario-bar{border:1px solid var(--border);border-radius:3px;background:rgba(12,17,34,.6);overflow:hidden;margin-bottom:16px}
+.scenario-bar-head{padding:10px 16px;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px;display:flex;align-items:center;gap:8px}
+.scenario-bar-head::before{content:'//';opacity:.4}
+.scenario-list{padding:8px}
+.scenario-btn{width:100%;text-align:left;background:transparent;border:1px solid transparent;border-radius:2px;padding:8px 10px;cursor:pointer;transition:all .2s;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.scenario-btn:hover{background:rgba(0,229,255,.05);border-color:var(--border)}
+.scenario-btn.active{background:rgba(0,229,255,.08);border-color:var(--border-h)}
+.scenario-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.scenario-name{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text)}
+
+.params-col{display:flex;flex-direction:column;gap:16px}
+.param-card{border:1px solid var(--border);border-radius:3px;background:rgba(12,17,34,.6);overflow:hidden}
+.param-card-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.param-card-bar{width:3px;height:14px;border-radius:1px;flex-shrink:0}
+.param-card-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px}
+.param-card-body{padding:16px 18px}
+.slider-row{margin-bottom:16px}
+.slider-row:last-child{margin-bottom:0}
+.slider-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px}
+.slider-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;flex:1;min-width:0}
+.num-input{width:52px;flex-shrink:0;background:var(--bg);border:1px solid var(--border-h);border-radius:2px;color:var(--text);padding:3px 6px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;text-align:center;outline:none;transition:border-color .2s;-moz-appearance:textfield}
+.num-input::-webkit-outer-spin-button,.num-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.num-input:focus{border-color:var(--cyan)}
+input[type=range]{width:100%;height:3px;border-radius:2px;outline:none;cursor:pointer;-webkit-appearance:none;background:rgba(255,255,255,.07);margin-top:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;border:2px solid var(--bg);cursor:pointer;transition:transform .15s;box-shadow:0 0 6px rgba(0,0,0,.4)}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
+
+.results-col{display:flex;flex-direction:column;gap:20px}
+.kpis-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.kpi-box{background:var(--bg2);padding:18px 16px;display:flex;flex-direction:column;gap:5px}
+.kpi-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+.kpi-value{font-family:'Orbitron',monospace;font-size:30px;font-weight:900;line-height:1;transition:color .4s}
+.kpi-sub{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;margin-top:1px;transition:color .4s}
+.kpi-track{height:2px;border-radius:1px;margin-top:7px;transition:width .5s ease,background .5s}
+
+.confidence-band{border:1px solid var(--border);border-radius:3px;background:rgba(12,17,34,.6);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.conf-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px}
+.conf-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.conf-bar-fill{height:100%;border-radius:3px;transition:width .5s ease,background .5s}
+.conf-value{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;min-width:40px;text-align:right;transition:color .4s}
+
+.chart-card{border:1px solid var(--border);border-radius:3px;background:rgba(12,17,34,.6);padding:20px}
+.chart-card-title{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.chart-card-title::before{content:'//';opacity:.4}
+.chart-wrap{position:relative;height:230px}
+.sector-wrap{position:relative;height:200px}
+
+.recos-card{border:1px solid var(--border);border-radius:3px;background:rgba(12,17,34,.6);overflow:hidden}
+.recos-head{padding:14px 20px;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.recos-head-left{display:flex;align-items:center;gap:8px}
+.recos-head-left::before{content:'//';opacity:.4}
+.reco-item{padding:18px 20px;border-bottom:1px solid var(--border);transition:background .2s;position:relative;overflow:hidden}
+.reco-item:last-child{border-bottom:none}
+.reco-item:hover{background:rgba(255,255,255,.015)}
+.reco-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.reco-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.reco-priority{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:2px;padding:3px 8px;border-radius:1px;border:1px solid}
+.reco-conf{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px}
+.reco-dim{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
+.reco-text{font-size:13px;color:var(--text);line-height:1.75}
+
+.export-btn{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--border-h);border-radius:2px;padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;cursor:pointer;transition:all .2s}
+.export-btn:hover{background:rgba(0,229,255,.08);border-color:var(--cyan)}
+
+/* MATERIALS */
+.mat-item{padding:16px 20px;border-bottom:1px solid var(--border);transition:background .2s;position:relative}
+.mat-item:last-child{border-bottom:none}
+.mat-item:hover{background:rgba(255,255,255,.015)}
+.mat-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.mat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.mat-name{font-family:'Orbitron',monospace;font-size:11px;font-weight:700}
+.mat-type{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;padding:2px 7px;border-radius:1px;border:1px solid;opacity:.8}
+.mat-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mat-urgency{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:1px;border:1px solid}
+.mat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.mat-stat{background:rgba(0,0,0,.2);border-radius:2px;padding:8px 10px}
+.mat-stat-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:3px}
+.mat-stat-val{font-family:'Orbitron',monospace;font-size:13px;font-weight:700}
+.mat-suppliers{margin-top:4px}
+.mat-suppliers-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.mat-supplier-list{display:flex;gap:6px;flex-wrap:wrap}
+.mat-supplier{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 9px;border-radius:1px;border:1px solid var(--border);color:var(--muted);letter-spacing:1px;background:rgba(255,255,255,.03)}
+.mat-supplier.alt{border-color:rgba(0,229,255,.25);color:var(--cyan);background:rgba(0,229,255,.05)}
+
+/* ABOUT */
+.about-hero{padding:120px 5% 60px}
+.about-inner{max-width:1080px;margin:0 auto}
+.about-lead{font-family:'Orbitron',monospace;font-size:clamp(20px,3.2vw,36px);font-weight:700;line-height:1.2;max-width:660px;margin-bottom:24px}
+.about-lead span{color:var(--cyan)}
+.about-intro{font-size:14px;color:var(--muted);max-width:540px;line-height:1.9;margin-bottom:40px}
+.about-quote{border-left:2px solid var(--cyan);padding-left:24px;margin:32px 0;max-width:580px}
+.about-quote p{font-family:'Orbitron',monospace;font-size:13px;color:var(--text);line-height:1.8;font-weight:400;opacity:.8}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.team-card{border:1px solid var(--border);border-radius:3px;padding:24px;background:var(--bg2);transition:border-color .25s}
+.team-card:hover{border-color:var(--border-h)}
+.team-av{width:44px;height:44px;border-radius:2px;border:1px solid var(--border-h);background:rgba(0,229,255,.07);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--cyan);margin-bottom:14px}
+.team-name{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;margin-bottom:3px}
+.team-role{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:10px}
+.team-bio{font-size:12px;color:var(--muted);line-height:1.75}
+.timeline{position:relative;padding-left:20px;max-width:560px}
+.timeline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--cyan),transparent)}
+.tl-item{position:relative;padding:0 0 26px 22px}
+.tl-item::before{content:'';position:absolute;left:-4px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.5)}
+.tl-date{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px;margin-bottom:4px}
+.tl-title{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;margin-bottom:4px}
+.tl-desc{font-size:12px;color:var(--muted);line-height:1.75}
+
+/* CONTACT */
+.contact-hero{padding:120px 5% 60px}
+.contact-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start}
+.contact-title{font-family:'Orbitron',monospace;font-size:clamp(22px,3.2vw,38px);font-weight:700;line-height:1.1;margin-bottom:16px}
+.contact-desc{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:36px}
+.contact-infos{display:flex;flex-direction:column;gap:10px}
+.contact-info-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--border);border-radius:2px;background:rgba(12,17,34,.4);transition:border-color .25s}
+.contact-info-item:hover{border-color:var(--border-h)}
+.info-icon{width:32px;height:32px;border:1px solid var(--border-h);border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.info-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:2px;display:block;margin-bottom:2px}
+.info-val{font-family:'Orbitron',monospace;font-size:11px;color:var(--text)}
+.form-box{border:1px solid var(--border);border-radius:3px;padding:28px;background:var(--bg2)}
+.form-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:3px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.form-group{margin-bottom:14px}
+.form-group label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:2px;color:var(--text);padding:10px 14px;font-family:'Sora',sans-serif;font-size:13px;outline:none;transition:border-color .2s;resize:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--cyan)}
+.form-group textarea{height:90px}
+.form-group select{appearance:none;cursor:pointer}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-submit{width:100%;background:var(--cyan);border:none;color:var(--bg);padding:12px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;margin-top:4px}
+.form-submit:hover{background:#00c8e0}
+.form-success{display:none;text-align:center;padding:32px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);letter-spacing:2px;line-height:2.4}
+
+@media(max-width:900px){
+  .pillars,.cibles,.team-grid,.value-grid,.pricing-grid,.diff-list,.engine-grid{grid-template-columns:1fr}
+  .sim-body{grid-template-columns:1fr}
+  .contact-inner{grid-template-columns:1fr}
+  .sim-header-inner{flex-direction:column;align-items:flex-start}
+  .stats-row{flex-wrap:wrap}
+  .kpis-row{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .nav-links li:not(:last-child) a{display:none}
+}
+
+/* IMPRINT */
+.imprint-section{padding:48px 5%;border-top:1px solid var(--border);background:rgba(12,17,34,.3)}
+.imprint-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.imprint-block h3{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
+.imprint-block p,.imprint-block address{font-size:12px;color:var(--muted);line-height:1.9;font-style:normal}
+.imprint-block a{color:var(--muted);text-decoration:none}
+.imprint-block a:hover{color:var(--cyan)}
+
+/* SVG ILLUSTRATIONS */
+.hero-illustration{width:100%;max-width:480px;margin:0 auto 40px;display:block}
+.about-illustration{width:100%;max-width:340px;float:right;margin:0 0 24px 40px}
+@media(max-width:900px){.about-illustration{float:none;margin:0 auto 24px;display:block}}
+
+/* SKIP LINK */
+.skip-link{position:absolute;top:-100px;left:0;background:var(--cyan);color:var(--bg);padding:8px 16px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;z-index:200;transition:top .2s}
+.skip-link:focus{top:0}
+
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<nav role="navigation" aria-label="Main navigation">
+  <span class="logo" onclick="go('home')" role="link" aria-label="PRAXIS home" tabindex="0">PRAXIS</span>
+  <ul class="nav-links" role="list">
+    <li><a id="n-home" onclick="go('home')" class="active" aria-current="page" aria-label="Home">Home</a></li>
+    <li><a id="n-sim" onclick="go('sim')" aria-label="Simulator">Simulator</a></li>
+    <li><a id="n-about" onclick="go('about')" aria-label="About">About</a></li>
+    <li><a id="n-contact" onclick="go('contact')" class="nav-cta" aria-label="Request access">Request access</a></li>
+  </ul>
+</nav>
+
+<!-- ===================== HOME ===================== -->
+<div class="page active" id="page-home" role="main" aria-label="Home">
+  <main id="main-content">
+  <div class="hero">
+    <div class="hero-badge"><div class="badge-dot" aria-hidden="true"></div>BETA — RESTRICTED ACCESS</div>
+    <p class="hero-eyebrow">// STRATEGIC DECISION SUPPORT TOOL</p>
+    <h1 class="hero-h1" aria-label="PRAXIS"><span class="h1-solid" aria-hidden="true">PRAX</span><span class="h1-outline" aria-hidden="true">IS</span></h1>
+    <p class="hero-tagline" aria-label="Predict, Anticipate, Optimise, Act">Predict · Anticipate · Optimise · Act</p>
+    <p class="hero-p">An intelligent simulator for defence stakeholders. Integrate geopolitics, supply chain, and economics to anticipate crises and decide with confidence.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="go('sim')" aria-label="Open the simulator">Explore the simulator</button>
+      <button class="btn-ghost" onclick="go('contact')" aria-label="Request beta access">Request access</button>
+    </div>
+
+    <!-- SVG HERO ILLUSTRATION: radar / globe diagram -->
+    <svg class="hero-illustration" viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PRAXIS strategic radar illustration showing three interconnected analysis dimensions">
+      <defs>
+        <radialGradient id="rg1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Grid lines -->
+      <line x1="0" y1="100" x2="480" y2="100" stroke="#00e5ff" stroke-opacity="0.08" stroke-width="1"/>
+      <line x1="240" y1="0" x2="240" y2="200" stroke="#00e5ff" stroke-opacity="0.08" stroke-width="1"/>
+      <!-- Radar circles -->
+      <circle cx="240" cy="100" r="90" fill="url(#rg1)" stroke="#00e5ff" stroke-opacity="0.15" stroke-width="1"/>
+      <circle cx="240" cy="100" r="60" fill="none" stroke="#00e5ff" stroke-opacity="0.2" stroke-width="1"/>
+      <circle cx="240" cy="100" r="30" fill="none" stroke="#00e5ff" stroke-opacity="0.3" stroke-width="1"/>
+      <!-- Radar lines -->
+      <line x1="240" y1="10" x2="240" y2="190" stroke="#00e5ff" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="150" y1="100" x2="330" y2="100" stroke="#00e5ff" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="162" y1="22" x2="318" y2="178" stroke="#00e5ff" stroke-opacity="0.07" stroke-width="1"/>
+      <line x1="318" y1="22" x2="162" y2="178" stroke="#00e5ff" stroke-opacity="0.07" stroke-width="1"/>
+      <!-- Data polygon -->
+      <polygon points="240,40 310,130 180,155 170,75 295,65" fill="#00e5ff" fill-opacity="0.07" stroke="#00e5ff" stroke-opacity="0.6" stroke-width="1.5"/>
+      <!-- Nodes -->
+      <circle cx="240" cy="40" r="5" fill="#00e5ff"/>
+      <circle cx="310" cy="130" r="4" fill="#ff5e1f"/>
+      <circle cx="180" cy="155" r="4" fill="#6dffb3"/>
+      <circle cx="170" cy="75" r="4" fill="#ffb830"/>
+      <circle cx="295" cy="65" r="4" fill="#00e5ff" fill-opacity="0.6"/>
+      <!-- Labels -->
+      <text x="240" y="28" text-anchor="middle" fill="#00e5ff" font-family="monospace" font-size="9" opacity="0.7">GEOPOLITICAL</text>
+      <text x="325" y="140" text-anchor="start" fill="#ff5e1f" font-family="monospace" font-size="9" opacity="0.7">SUPPLY</text>
+      <text x="115" y="162" text-anchor="start" fill="#6dffb3" font-family="monospace" font-size="9" opacity="0.7">ECONOMIC</text>
+      <!-- Sweep line animation -->
+      <line x1="240" y1="100" x2="240" y2="10" stroke="#00e5ff" stroke-opacity="0.4" stroke-width="1.5">
+        <animateTransform attributeName="transform" type="rotate" from="0 240 100" to="360 240 100" dur="6s" repeatCount="indefinite"/>
+      </line>
+      <!-- Three dimension boxes -->
+      <rect x="10" y="10" width="90" height="36" rx="2" fill="#0c1122" stroke="#00e5ff" stroke-opacity="0.3" stroke-width="1"/>
+      <text x="55" y="24" text-anchor="middle" fill="#00e5ff" font-family="monospace" font-size="8" font-weight="bold">01 · GEO</text>
+      <text x="55" y="38" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="7">25+ scenarios</text>
+      <rect x="10" y="80" width="90" height="36" rx="2" fill="#0c1122" stroke="#ff5e1f" stroke-opacity="0.3" stroke-width="1"/>
+      <text x="55" y="94" text-anchor="middle" fill="#ff5e1f" font-family="monospace" font-size="8" font-weight="bold">02 · SUPPLY</text>
+      <text x="55" y="108" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="7">180+ countries</text>
+      <rect x="10" y="154" width="90" height="36" rx="2" fill="#0c1122" stroke="#6dffb3" stroke-opacity="0.3" stroke-width="1"/>
+      <text x="55" y="168" text-anchor="middle" fill="#6dffb3" font-family="monospace" font-size="8" font-weight="bold">03 · ECON</text>
+      <text x="55" y="182" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="7">12 sectors</text>
+      <!-- Right side output box -->
+      <rect x="380" y="70" width="90" height="60" rx="2" fill="#0c1122" stroke="#ffb830" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="425" y="88" text-anchor="middle" fill="#ffb830" font-family="monospace" font-size="8" font-weight="bold">OUTPUT</text>
+      <text x="425" y="102" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="7">KPIs · Matrix</text>
+      <text x="425" y="116" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="7">PDF Brief</text>
+      <!-- Connector arrows -->
+      <line x1="100" y1="28" x2="150" y2="60" stroke="#00e5ff" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="100" y1="98" x2="150" y2="100" stroke="#ff5e1f" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="100" y1="172" x2="150" y2="140" stroke="#6dffb3" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="330" y1="100" x2="380" y2="100" stroke="#ffb830" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="4,3"/>
+    </svg>
+
+    <div class="stats-row" role="list" aria-label="Key statistics">
+      <div class="stat" role="listitem"><span class="stat-n">3</span><span class="stat-l">Analytical dimensions</span></div>
+      <div class="stat" role="listitem"><span class="stat-n">$2.2T</span><span class="stat-l">Global defence market</span></div>
+      <div class="stat" role="listitem"><span class="stat-n">12</span><span class="stat-l">Strategic sectors</span></div>
+      <div class="stat" role="listitem"><span class="stat-n">24/7</span><span class="stat-l">Active monitoring</span></div>
+      <div class="stat" role="listitem"><span class="stat-n">8%</span><span class="stat-l">Target market CAGR</span></div>
+    </div>
+  </div>
+
+  <!-- PILLARS -->
+  <section aria-label="Three analytical dimensions" class="section" style="background:rgba(12,17,34,.4);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section-inner">
+      <p class="s-tag">01 — Concept</p>
+      <h2 class="s-h2">Three dimensions.<br>One platform.</h2>
+      <p class="s-p">PRAXIS fuses the most critical variables in the defence environment into a single actionable simulator.</p>
+      <div class="pillars" role="list">
+        <div class="pillar" role="listitem"><div class="pillar-bar" style="background:var(--cyan)" aria-hidden="true"></div><span class="pillar-code">// 01 · GEOPOLITICAL</span><h3 class="pillar-t">Geopolitical factors</h3><p class="pillar-d">25+ scenarios covering conflict zones, sanctions regimes, and alliance dynamics. Modelling of the geostrategic environment and its direct impact on your decisions.</p></div>
+        <div class="pillar" role="listitem"><div class="pillar-bar" style="background:var(--orange)" aria-hidden="true"></div><span class="pillar-code">// 02 · SUPPLY CHAIN</span><h3 class="pillar-t">Supply chains</h3><p class="pillar-d">Real-time modelling of critical material dependencies across 180+ countries. Anticipate vulnerabilities before they become crises.</p></div>
+        <div class="pillar" role="listitem"><div class="pillar-bar" style="background:var(--green)" aria-hidden="true"></div><span class="pillar-code">// 03 · ECONOMIC</span><h3 class="pillar-t">Industrial economics</h3><p class="pillar-d">Mapping of industrial and fiscal consequences with confidence-scored projections. Evaluate the economic impact of every decision.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUE PROPOSITION -->
+  <section aria-label="Value proposition" class="section">
+    <div class="section-inner">
+      <p class="s-tag">02 — Value proposition</p>
+      <h2 class="s-h2">From fragmented data<br>to clear decisions.</h2>
+      <p class="s-p">PRAXIS turns scattered signals into actionable strategic recommendations — in minutes, not weeks.</p>
+      <div class="value-grid">
+        <div class="value-card">
+          <div class="value-card-bar" style="background:var(--cyan)"></div>
+          <div class="value-card-title" style="color:var(--cyan)">Geopolitical scenario engine</div>
+          <div class="value-card-desc">25+ preset scenarios covering conflict zones, sanctions regimes, and alliance shifts. Live recalibration via sliders.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-card-bar" style="background:var(--orange)"></div>
+          <div class="value-card-title" style="color:var(--orange)">Supply chain stress testing</div>
+          <div class="value-card-desc">Critical material dependency modelling across 180+ countries. Alternative suppliers suggested by geographic zone.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-card-bar" style="background:var(--green)"></div>
+          <div class="value-card-title" style="color:var(--green)">Economic impact forecasting</div>
+          <div class="value-card-desc">Sector-level mapping of industrial and fiscal consequences with confidence-weighted projections.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-card-bar" style="background:var(--amber)"></div>
+          <div class="value-card-title" style="color:var(--amber)">AI-powered recommendations</div>
+          <div class="value-card-desc">Prioritised action plans with risk/opportunity matrices updated dynamically. Confidence score on every recommendation.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNOLOGY -->
+  <section aria-label="Technology" class="section" style="background:rgba(12,17,34,.4);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section-inner">
+      <p class="s-tag">03 — Technology</p>
+      <h2 class="s-h2">What happens<br>under the hood.</h2>
+      <p class="s-p" style="margin-bottom:32px">A 5-step analytical pipeline, from raw data ingestion to executive recommendation.</p>
+      <div class="engine-grid">
+        <div class="engine-step">
+          <div class="engine-step-num">01</div>
+          <div class="engine-step-title">Data<br>ingestion</div>
+          <div class="engine-step-desc">Structured feeds + open-source OSINT in real time</div>
+        </div>
+        <div class="engine-step">
+          <div class="engine-step-num">02</div>
+          <div class="engine-step-title">Dimensional<br>modelling</div>
+          <div class="engine-step-desc">Geopolitical × Supply chain × Economic</div>
+        </div>
+        <div class="engine-step">
+          <div class="engine-step-num">03</div>
+          <div class="engine-step-title">Scenario<br>engine</div>
+          <div class="engine-step-desc">Probabilistic simulation with confidence scoring</div>
+        </div>
+        <div class="engine-step">
+          <div class="engine-step-num">04</div>
+          <div class="engine-step-title">AI analysis<br>layer</div>
+          <div class="engine-step-desc">LLM-assisted synthesis with dynamic confidence scoring</div>
+        </div>
+        <div class="engine-step">
+          <div class="engine-step-num">05</div>
+          <div class="engine-step-title">Decision<br>output</div>
+          <div class="engine-step-desc">KPIs · Risk matrix · Recommendations · PDF export</div>
+        </div>
+      </div>
+      <div class="diff-list">
+        <div class="diff-item"><div class="diff-dot"></div><div class="diff-text"><strong>Real-time recalibration</strong> — every slider adjustment instantly updates all indicators, charts and recommendations.</div></div>
+        <div class="diff-item"><div class="diff-dot" style="background:var(--amber)"></div><div class="diff-text"><strong>Probabilistic confidence scoring</strong> — every projection and recommendation carries a dynamically calculated confidence index.</div></div>
+        <div class="diff-item"><div class="diff-dot" style="background:var(--orange)"></div><div class="diff-text"><strong>Sector-level decomposition</strong> — impact analysis across 12 strategic industries, from aerospace to semiconductors.</div></div>
+        <div class="diff-item"><div class="diff-dot" style="background:var(--green)"></div><div class="diff-text"><strong>PDF intelligence brief export</strong> — executive-formatted report, ready for the highest decision-making level.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUDIENCES -->
+  <section aria-label="Target audiences" class="section">
+    <div class="section-inner">
+      <p class="s-tag">04 — Audiences</p>
+      <h2 class="s-h2">Built for those who<br>decide under pressure.</h2>
+      <p class="s-p">PRAXIS is designed for stakeholders at the intersection of risk and strategic responsibility.</p>
+      <div class="cibles">
+        <div class="cible"><div class="cible-r">Governments & Defence</div><p class="cible-d">Ministries, intelligence agencies, crisis cells. Systemic vision for decisions with national impact.</p></div>
+        <div class="cible"><div class="cible-r">Defence industry</div><p class="cible-d">Large groups, mid-size companies, and SMEs. Industrial trade-offs in the face of geopolitical and supply constraints.</p></div>
+        <div class="cible"><div class="cible-r">Supply chain managers</div><p class="cible-d">Anticipate disruptions and secure strategic dependencies across critical supply chains.</p></div>
+        <div class="cible"><div class="cible-r">Think tanks & advisors</div><p class="cible-d">Enrich your forward-looking analyses with multidimensional quantitative simulations.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section aria-label="Pricing" class="section" style="background:rgba(12,17,34,.4);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section-inner">
+      <p class="s-tag">05 — Pricing</p>
+      <h2 class="s-h2">A model built for<br>your organisation.</h2>
+      <p class="s-p" style="margin-bottom:36px">Three access tiers tailored to the size and security requirements of your organisation.</p>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="price-tier" style="color:var(--muted)">ANALYST</div>
+          <div class="price-amount" style="color:var(--text)">€4,900</div>
+          <span class="price-period">/ year / seat</span>
+          <div class="price-divider"></div>
+          <div class="price-feature">Up to 5 users</div>
+          <div class="price-feature">10 simulations / month</div>
+          <div class="price-feature">Standard dashboards</div>
+          <div class="price-feature">Email support</div>
+          <div class="price-feature">PDF export</div>
+          <button class="price-btn price-btn-outline" onclick="go('contact')">REQUEST ACCESS</button>
+        </div>
+        <div class="price-card featured">
+          <div class="price-card-badge">RECOMMENDED</div>
+          <div class="price-tier" style="color:var(--cyan)">ENTERPRISE</div>
+          <div class="price-amount" style="color:var(--cyan)">€24,900</div>
+          <span class="price-period">/ year — unlimited users</span>
+          <div class="price-divider"></div>
+          <div class="price-feature">Unlimited users</div>
+          <div class="price-feature">Unlimited simulations</div>
+          <div class="price-feature">Custom data feeds</div>
+          <div class="price-feature">Dedicated onboarding</div>
+          <div class="price-feature">API access</div>
+          <div class="price-feature">Executive PDF export</div>
+          <button class="price-btn price-btn-filled" onclick="go('contact')">REQUEST ACCESS</button>
+        </div>
+        <div class="price-card">
+          <div class="price-tier" style="color:var(--amber)">SOVEREIGN</div>
+          <div class="price-amount" style="color:var(--amber)">Custom</div>
+          <span class="price-period">dedicated contract</span>
+          <div class="price-divider"></div>
+          <div class="price-feature">Air-gapped deployment</div>
+          <div class="price-feature">Classified data integration</div>
+          <div class="price-feature">Dedicated team</div>
+          <div class="price-feature">SLA guarantee</div>
+          <div class="price-feature">Training programme</div>
+          <button class="price-btn price-btn-outline" onclick="go('contact')">CONTACT US</button>
+        </div>
+      </div>
+      <div class="pricing-note">+ Professional services &nbsp;·&nbsp; Custom scenario development &nbsp;·&nbsp; Training workshops</div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="home-cta" role="complementary" aria-label="Call to action">
+    <h2>Ready to anticipate the future?</h2>
+    <p>Join the first users of PRAXIS.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative">
+      <button class="btn-primary" onclick="go('contact')" aria-label="Request beta access">Request access</button>
+      <button class="btn-ghost" onclick="go('sim')" aria-label="Open simulator">View the simulator</button>
+    </div>
+  </div>
+
+  <!-- IMPRINT -->
+  <aside class="imprint-section" aria-label="Legal imprint">
+    <div class="imprint-inner">
+      <div class="imprint-block">
+        <h3>Legal notice</h3>
+        <address>
+          PRAXIS Strategy SAS<br>
+          12 rue de la Paix, 75002 Paris<br>
+          France<br>
+          <a href="mailto:contact@praxis-strategy.fr">contact@praxis-strategy.fr</a>
+        </address>
+      </div>
+      <div class="imprint-block">
+        <h3>Responsible editor</h3>
+        <p>Charlène Brault<br>CEO & Founder<br>PRAXIS Strategy<br>SIRET: 123 456 789 00012</p>
+      </div>
+      <div class="imprint-block">
+        <h3>Disclaimer</h3>
+        <p>All simulations and recommendations generated by PRAXIS are for informational purposes only and do not constitute professional strategic, legal, or financial advice. © 2026 PRAXIS Strategy. All rights reserved.</p>
+      </div>
+    </div>
+  </aside>
+
+  </main>
+  <footer role="contentinfo">
+    <span class="footer-logo" onclick="go('home')" aria-label="PRAXIS home">PRAXIS</span>
+    <ul class="footer-nav" role="list" aria-label="Footer navigation">
+      <li><a onclick="go('sim')" aria-label="Simulator">Simulator</a></li>
+      <li><a onclick="go('about')" aria-label="About">About</a></li>
+      <li><a onclick="go('contact')" aria-label="Contact">Contact</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 PRAXIS Strategy</span>
+  </footer>
+</div>
+
+<!-- ===================== SIMULATOR ===================== -->
+<div class="page" id="page-sim" aria-label="Simulator">
+  <main id="main-content-sim">
+  <div style="max-width:1080px;margin:0 auto;padding:80px 5% 0;display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <h1 style="font-family:'Orbitron',monospace;font-size:clamp(20px,3vw,32px);font-weight:900;padding-top:0">PRAXIS <span style="color:var(--cyan)">Simulator</span></h1>
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <button class="export-btn" onclick="exportPDF()" aria-label="Export PDF report">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 5l3 3 3-3M1 9v1.5A.5.5 0 001.5 11h9a.5.5 0 00.5-.5V9" stroke="var(--cyan)" stroke-width="1.2" stroke-linecap="round"/></svg>
+        EXPORT PDF
+      </button>
+      <div class="sim-live-badge" aria-live="polite" aria-label="Analysis status: live"><div class="badge-dot" aria-hidden="true"></div>LIVE ANALYSIS</div>
+    </div>
+  </div>
+
+  <div class="sim-body">
+    <div class="params-col">
+
+      <!-- SCENARIOS -->
+      <div class="scenario-bar">
+        <div class="scenario-bar-head">Preset scenarios</div>
+        <div class="scenario-list">
+          <button class="scenario-btn" onclick="applyScenario(60,45,70,55,35,40,25,event)"><div class="scenario-dot" style="background:var(--muted)"></div><span class="scenario-name">Baseline 2026</span></button>
+          <button class="scenario-btn" onclick="applyScenario(85,75,35,80,70,55,60,event)"><div class="scenario-dot" style="background:var(--orange)"></div><span class="scenario-name">Indo-Pacific escalation</span></button>
+          <button class="scenario-btn" onclick="applyScenario(70,55,60,90,80,65,70,event)"><div class="scenario-dot" style="background:var(--amber)"></div><span class="scenario-name">REE / Rare earth crisis</span></button>
+          <button class="scenario-btn" onclick="applyScenario(50,35,80,40,25,75,80,event)"><div class="scenario-dot" style="background:var(--cyan)"></div><span class="scenario-name">EU budget pressure</span></button>
+          <button class="scenario-btn" onclick="applyScenario(40,25,85,30,20,20,15,event)"><div class="scenario-dot" style="background:var(--green)"></div><span class="scenario-name">Strategic stability</span></button>
+        </div>
+      </div>
+
+      <!-- GEOPOLITICAL -->
+      <div class="param-card">
+        <div class="param-card-head">
+          <div class="param-card-bar" style="background:var(--cyan)"></div>
+          <span class="param-card-title" style="color:var(--cyan)">Geopolitical</span>
+        </div>
+        <div class="param-card-body">
+          <div class="slider-row">
+            <div class="slider-top"><span class="slider-label">Regional instability</span><input type="number" class="num-input" id="n-instab" min="0" max="100" value="60" oninput="fromNum('instab')"></div>
+            <input type="range" id="s-instab" min="0" max="100" value="60" oninput="fromSlider('instab')" style="accent-color:var(--cyan)">
+          </div>
+          <div class="slider-row">
+            <div class="slider-top"><span class="slider-label">Conflict risk</span><input type="number" class="num-input" id="n-conflit" min="0" max="100" value="45" oninput="fromNum('conflit')"></div>
+            <input type="range" id="s-conflit" min="0" max="100" value="45" oninput="fromSlider('conflit')" style="accent-color:var(--cyan)">
+          </div>
+          <div class="slider-row">
+            <div class="slider-top"><span class="slider-label">Alliance strength</span><input type="number" class="num-input" id="n-alliances" min="0" max="100" value="70" oninput="fromNum('alliances')"></div>
+            <input type="range" id="s-alliances" min="0" max="100" value="70" oninput="fromSlider('alliances')" style="accent-color:var(--cyan)">
+          </div>
+        </div>
+      </div>
+
+      <!-- SUPPLY CHAIN -->
+      <div class="param-card">
+        <div class="param-card-head">
+          <div class="param-card-bar" style="background:var(--orange)"></div>
+          <span class="param-card-title" style="color:var(--orange)">Supply Chain</span>
+        </div>
+        <div class="param-card-body">
+          <div class="slider-row">
+            <div class="slider-top"><span class="slider-label">Critical dependency</span><input type="number" class="num-input" id="n-dep" min="0" max="100" value="55" oninput="fromNum('dep')"></div>
+            <input type="range" id="s-dep" min="0" max="100" value="55" oninput="fromSlider('dep')" style="accent-color:var(--orange)">
+          </div>
+          <div class="slider-row">
+            <div class="slider-top"><span class="slider-label">Disruption risk</span><input type="number" class="num-input" id="n-rupture" min="0" max="100" value="35" oninput="fromNum('rupture')"></div>
+            <input type="range" id="s-rupture" min="0" max="100" value="35" oninput="fromSlider('rupture')" style="accent-color:var(--orange)">
+          </div>
+        </div>
+      </div>
+
+      <!-- ECONOMIC -->
+      <div class="param-card">
+        <div class="param-card-head">
+          <div class="param-card-bar" style="background:var(--green)"></div>
+          <span class="param-card-title" style="color:var(--green)">Economic</span>
+        </div>
+        <div class="param-card-body">
+          <div class="slider-row">
+            <div class="slider-top"><span class="slider-label">Budget pressure</span><input type="number" class="num-input" id="n-budget" min="0" max="100" value="40" oninput="fromNum('budget')"></div>
+            <input type="range" id="s-budget" min="0" max="100" value="40" oninput="fromSlider('budget')" style="accent-color:var(--green)">
+          </div>
+          <div class="slider-row">
+            <div class="slider-top"><span class="slider-label">Sanctions exposure</span><input type="number" class="num-input" id="n-sanc" min="0" max="100" value="25" oninput="fromNum('sanc')"></div>
+            <input type="range" id="s-sanc" min="0" max="100" value="25" oninput="fromSlider('sanc')" style="accent-color:var(--green)">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /params-col -->
+
+    <div class="results-col">
+
+      <!-- KPIs -->
+      <div class="kpis-row">
+        <div class="kpi-box">
+          <span class="kpi-label">Global risk</span>
+          <span class="kpi-value" id="kpi-risk">0</span>
+          <span class="kpi-sub" id="kpi-risk-s">LOW</span>
+          <div class="kpi-track" id="kpi-risk-t" style="width:0%"></div>
+        </div>
+        <div class="kpi-box">
+          <span class="kpi-label">Supply vulnerability</span>
+          <span class="kpi-value" id="kpi-sup">0</span>
+          <span class="kpi-sub" id="kpi-sup-s">LOW</span>
+          <div class="kpi-track" id="kpi-sup-t" style="width:0%"></div>
+        </div>
+        <div class="kpi-box">
+          <span class="kpi-label">Economic impact</span>
+          <span class="kpi-value" id="kpi-eco">0</span>
+          <span class="kpi-sub" id="kpi-eco-s">LOW</span>
+          <div class="kpi-track" id="kpi-eco-t" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- CONFIDENCE GAUGE -->
+      <div class="confidence-band">
+        <span class="conf-label">// GLOBAL CONFIDENCE</span>
+        <div class="conf-bar-wrap"><div class="conf-bar-fill" id="conf-fill" style="width:0%"></div></div>
+        <span class="conf-value" id="conf-val">—</span>
+      </div>
+
+      <!-- RADAR -->
+      <div class="chart-card">
+        <div class="chart-card-title">Multi-dimensional strategic radar</div>
+        <div class="chart-wrap"><canvas id="radar-canvas"></canvas></div>
+      </div>
+
+      <!-- SECTOR IMPACT -->
+      <div class="chart-card">
+        <div class="chart-card-title">Sector impact — 12 strategic industries</div>
+        <div class="sector-wrap"><canvas id="sector-canvas"></canvas></div>
+      </div>
+
+      <!-- RECOMMENDATIONS -->
+      <div class="recos-card">
+        <div class="recos-head">
+          <span class="recos-head-left">PRAXIS strategic recommendations</span>
+          <button class="export-btn" onclick="exportPDF()" style="padding:4px 10px;font-size:8px">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 5l3 3 3-3M1 9v1.5A.5.5 0 001.5 11h9a.5.5 0 00.5-.5V9" stroke="var(--cyan)" stroke-width="1.2" stroke-linecap="round"/></svg>
+            EXPORT PDF
+          </button>
+        </div>
+        <div id="recos-body"></div>
+      </div>
+
+      <!-- MATERIALS -->
+      <div class="recos-card" id="materials-card">
+        <div class="recos-head" style="justify-content:space-between">
+          <span class="recos-head-left">Exposed materials & components</span>
+          <span id="mat-count" style="font-family:'Orbitron',monospace;font-size:10px;color:var(--amber)">— exposed</span>
+        </div>
+        <div style="padding:0" id="materials-body"></div>
+      </div>
+
+    </div>
+  </div>
+
+  </main>
+  <footer role="contentinfo">
+    <span class="footer-logo" onclick="go('home')" aria-label="PRAXIS home">PRAXIS</span>
+    <ul class="footer-nav" role="list"><li><a onclick="go('home')">Home</a></li><li><a onclick="go('about')">About</a></li><li><a onclick="go('contact')">Contact</a></li></ul>
+    <span class="footer-copy">© 2026 PRAXIS</span>
+  </footer>
+</div>
+
+<!-- ===================== ABOUT ===================== -->
+<div class="page" id="page-about" aria-label="About PRAXIS">
+  <main id="main-content-about">
+  <div class="about-hero">
+    <div class="about-inner">
+      <p class="s-tag">// About</p>
+
+      <!-- SVG ABOUT ILLUSTRATION: network of decision nodes -->
+      <svg class="about-illustration" viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of interconnected strategic decision nodes representing the PRAXIS analytical network">
+        <defs>
+          <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Background grid -->
+        <rect width="320" height="260" fill="#0c1122" rx="4"/>
+        <line x1="0" y1="65" x2="320" y2="65" stroke="#00e5ff" stroke-opacity="0.05" stroke-width="1"/>
+        <line x1="0" y1="130" x2="320" y2="130" stroke="#00e5ff" stroke-opacity="0.05" stroke-width="1"/>
+        <line x1="0" y1="195" x2="320" y2="195" stroke="#00e5ff" stroke-opacity="0.05" stroke-width="1"/>
+        <line x1="80" y1="0" x2="80" y2="260" stroke="#00e5ff" stroke-opacity="0.05" stroke-width="1"/>
+        <line x1="160" y1="0" x2="160" y2="260" stroke="#00e5ff" stroke-opacity="0.05" stroke-width="1"/>
+        <line x1="240" y1="0" x2="240" y2="260" stroke="#00e5ff" stroke-opacity="0.05" stroke-width="1"/>
+        <!-- Connection lines -->
+        <line x1="160" y1="130" x2="80" y2="60" stroke="#00e5ff" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="160" y1="130" x2="240" y2="60" stroke="#ff5e1f" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="160" y1="130" x2="80" y2="200" stroke="#6dffb3" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="160" y1="130" x2="240" y2="200" stroke="#ffb830" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="80" y1="60" x2="240" y2="60" stroke="#00e5ff" stroke-opacity="0.15" stroke-width="1"/>
+        <line x1="80" y1="200" x2="240" y2="200" stroke="#00e5ff" stroke-opacity="0.15" stroke-width="1"/>
+        <!-- Central node -->
+        <circle cx="160" cy="130" r="28" fill="#0c1122" stroke="#00e5ff" stroke-width="2" filter="url(#glow)"/>
+        <circle cx="160" cy="130" r="18" fill="#00e5ff" fill-opacity="0.1" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.5"/>
+        <text x="160" y="126" text-anchor="middle" fill="#00e5ff" font-family="monospace" font-size="7" font-weight="bold">PRAXIS</text>
+        <text x="160" y="138" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="6">ENGINE</text>
+        <!-- Satellite nodes -->
+        <circle cx="80" cy="60" r="20" fill="#0c1122" stroke="#00e5ff" stroke-width="1.5"/>
+        <text x="80" y="56" text-anchor="middle" fill="#00e5ff" font-family="monospace" font-size="6">GEO</text>
+        <text x="80" y="67" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="6">POLITICS</text>
+        <circle cx="240" cy="60" r="20" fill="#0c1122" stroke="#ff5e1f" stroke-width="1.5"/>
+        <text x="240" y="56" text-anchor="middle" fill="#ff5e1f" font-family="monospace" font-size="6">SUPPLY</text>
+        <text x="240" y="67" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="6">CHAIN</text>
+        <circle cx="80" cy="200" r="20" fill="#0c1122" stroke="#6dffb3" stroke-width="1.5"/>
+        <text x="80" y="196" text-anchor="middle" fill="#6dffb3" font-family="monospace" font-size="6">ECON</text>
+        <text x="80" y="207" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="6">IMPACT</text>
+        <circle cx="240" cy="200" r="20" fill="#0c1122" stroke="#ffb830" stroke-width="1.5"/>
+        <text x="240" y="196" text-anchor="middle" fill="#ffb830" font-family="monospace" font-size="6">AI</text>
+        <text x="240" y="207" text-anchor="middle" fill="#5a7090" font-family="monospace" font-size="6">RECOS</text>
+        <!-- Pulse rings -->
+        <circle cx="160" cy="130" r="35" fill="none" stroke="#00e5ff" stroke-opacity="0.08" stroke-width="1">
+          <animate attributeName="r" values="28;50;28" dur="3s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-opacity" values="0.15;0;0.15" dur="3s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+
+      <h1 class="about-lead">Uncertainty is not a fatality. It is a <span>variable to model</span>.</h1>
+      <p class="about-intro">PRAXIS was born from a simple observation: defence decision-makers lack tools capable of simultaneously integrating geopolitical, industrial, and logistical dimensions.</p>
+      <blockquote class="about-quote"><p>We believe an informed decision is one that has seen all its scenarios. PRAXIS gives strategists the ability to simulate the future before committing to it.</p></blockquote>
+    </div>
+  </div>
+  <div class="section" style="background:rgba(12,17,34,.4);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section-inner">
+      <p class="s-tag">01 — The team</p>
+      <h2 class="s-h2">The minds behind PRAXIS.</h2>
+      <p class="s-p" style="margin-bottom:32px">A multidisciplinary team combining strategy, data science, and defence industry expertise.</p>
+      <div class="team-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="team-card"><div class="team-av">CB</div><div class="team-name">Charlène Brault</div><div class="team-role">// Strategy & Vision</div><p class="team-bio">Expert in defence strategy and geopolitical anticipation. Leads the strategic direction and institutional partnerships of PRAXIS.</p></div>
+        <div class="team-card"><div class="team-av">GL</div><div class="team-name">Guillaume Laquet</div><div class="team-role">// Data & Modelling</div><p class="team-bio">Specialist in systemic modelling and artificial intelligence. Architect of the simulation algorithms at the core of PRAXIS.</p></div>
+        <div class="team-card"><div class="team-av">XP</div><div class="team-name">Xavier Parthon De Von</div><div class="team-role">// Geopolitics & Analysis</div><p class="team-bio">Analyst in international relations and geopolitical risk. Expert in alliance dynamics and conflict in global strategic zones.</p></div>
+      </div>
+      <div class="team-grid" style="grid-template-columns:repeat(2,1fr);margin-top:14px;max-width:720px">
+        <div class="team-card"><div class="team-av">AJ</div><div class="team-name">Augustin Jolivet</div><div class="team-role">// Supply Chain & Industry</div><p class="team-bio">Expert in critical supply chains in the defence sector. Leads analysis of industrial dependencies and disruption risks.</p></div>
+        <div class="team-card"><div class="team-av">MJ</div><div class="team-name">Mahmoud Joueidi</div><div class="team-role">// Economics & Markets</div><p class="team-bio">Specialist in defence economics and markets. Analyses the impact of sanctions, budgets, and global industrial dynamics.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-inner" style="display:grid;grid-template-columns:1fr 1fr;gap:72px">
+      <div>
+        <p class="s-tag">02 — Vision</p>
+        <h2 class="s-h2">Why PRAXIS?</h2>
+        <p style="font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:16px">In a world where crises accelerate and overlap, traditional tools analyse one dimension at a time and look to the past.</p>
+        <p style="font-size:14px;color:var(--muted);line-height:1.9">PRAXIS models the interconnection of crises to produce forward-looking, quantified, actionable recommendations. Our goal: to become the standard for strategic defence decision support in Europe by 2027.</p>
+      </div>
+      <div>
+        <p class="s-tag">03 — Roadmap</p>
+        <h2 class="s-h2">The project trajectory.</h2>
+        <div class="timeline" style="margin-top:28px">
+          <div class="tl-item"><div class="tl-date">// 2024 · Q3</div><div class="tl-title">Ideation & Research</div><p class="tl-desc">Concept definition, market research, identification of decision-maker needs.</p></div>
+          <div class="tl-item"><div class="tl-date">// 2025 · Q1</div><div class="tl-title">Prototype v0.1</div><p class="tl-desc">First functional simulator integrating all three dimensions. Pilot partner testing.</p></div>
+          <div class="tl-item"><div class="tl-date">// 2025 · Q4</div><div class="tl-title">Closed beta</div><p class="tl-desc">10 pilot organisations. Intensive iterations and model calibration.</p></div>
+          <div class="tl-item"><div class="tl-date">// 2026 · Q2</div><div class="tl-title">Commercial launch</div><p class="tl-desc">Access opening, API integrations, European institutional partnerships.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+  <footer role="contentinfo">
+    <span class="footer-logo" onclick="go('home')" aria-label="PRAXIS home">PRAXIS</span>
+    <ul class="footer-nav" role="list"><li><a onclick="go('home')">Home</a></li><li><a onclick="go('sim')">Simulator</a></li><li><a onclick="go('contact')">Contact</a></li></ul>
+    <span class="footer-copy">© 2026 PRAXIS</span>
+  </footer>
+</div>
+
+<!-- ===================== CONTACT ===================== -->
+<div class="page" id="page-contact" aria-label="Contact">
+  <main id="main-content-contact">
+  <div class="contact-hero">
+    <div class="contact-inner">
+      <div>
+        <p class="s-tag">// Contact</p>
+        <h1 class="contact-title">Let's talk strategy.</h1>
+        <p class="contact-desc">Decision-maker, industry leader, or defence researcher? Request beta access or discuss your needs with our team.</p>
+        <address class="contact-infos">
+          <div class="contact-info-item">
+            <div class="info-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2.5" width="12" height="9" rx="1" stroke="var(--cyan)" stroke-width="1.2"/><path d="M1 3.5l6 4.5 6-4.5" stroke="var(--cyan)" stroke-width="1.2"/></svg></div>
+            <div><span class="info-label">Email</span><a class="info-val" href="mailto:contact@praxis-strategy.fr" style="color:var(--text);text-decoration:none">contact@praxis-strategy.fr</a></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="info-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.8 1 3 2.8 3 5c0 3.5 4 8 4 8s4-4.5 4-8c0-2.2-1.8-4-4-4z" stroke="var(--cyan)" stroke-width="1.2"/><circle cx="7" cy="5" r="1.2" stroke="var(--cyan)" stroke-width="1.2"/></svg></div>
+            <div><span class="info-label">Headquarters</span><span class="info-val">Paris, France</span></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="info-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="var(--cyan)" stroke-width="1.2"/><path d="M4 7h6M7 4v6" stroke="var(--cyan)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+            <div><span class="info-label">Beta access</span><span class="info-val">By application — Limited places</span></div>
+          </div>
+        </address>
+      </div>
+      <div class="form-box" role="form" aria-label="Access request form">
+        <div class="form-title" id="form-heading">// ACCESS REQUEST</div>
+        <div id="form-fields" aria-labelledby="form-heading">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-prenom">First name</label>
+              <input type="text" placeholder="John" id="f-prenom" name="firstname" autocomplete="given-name" required aria-required="true">
+            </div>
+            <div class="form-group">
+              <label for="f-nom">Last name</label>
+              <input type="text" placeholder="Smith" id="f-nom" name="lastname" autocomplete="family-name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="f-email">Professional email</label>
+            <input type="email" placeholder="j.smith@org.com" id="f-email" name="email" autocomplete="email" required aria-required="true">
+          </div>
+          <div class="form-group">
+            <label for="f-org">Organisation</label>
+            <input type="text" placeholder="Ministry / Company / Institute" id="f-org" name="organisation" autocomplete="organization">
+          </div>
+          <div class="form-group">
+            <label for="f-profile">Profile</label>
+            <select id="f-profile" name="profile" aria-label="Select your profile">
+              <option value="">Select your profile</option>
+              <option>Government / Public institution</option>
+              <option>Defence industry</option>
+              <option>Supply chain manager</option>
+              <option>Think tank / Advisory</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="f-message">Message (optional)</label>
+            <textarea placeholder="Describe your needs..." id="f-message" name="message"></textarea>
+          </div>
+          <button class="form-submit" onclick="submitForm()" type="button" aria-label="Submit access request">SEND →</button>
+        </div>
+        <div class="form-success" id="form-success" role="alert" aria-live="assertive">
+          <div style="font-size:28px;margin-bottom:12px" aria-hidden="true">✓</div>
+          REQUEST RECEIVED<br><span style="color:var(--muted)">Our team will contact you within 48 hours.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+  <footer role="contentinfo">
+    <span class="footer-logo" onclick="go('home')" aria-label="PRAXIS home">PRAXIS</span>
+    <ul class="footer-nav" role="list"><li><a onclick="go('home')">Home</a></li><li><a onclick="go('sim')">Simulator</a></li><li><a onclick="go('about')">About</a></li></ul>
+    <span class="footer-copy">© 2026 PRAXIS</span>
+  </footer>
+</div>
+
+<script>
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const target = document.getElementById('page-'+id);
+  target.classList.add('active');
+  ['home','sim','about','contact'].forEach(k=>{
+    const el=document.getElementById('n-'+k);
+    if(el){
+      el.classList.toggle('active',k===id);
+      el.setAttribute('aria-current', k===id ? 'page' : 'false');
+    }
+  });
+  // Force scroll to very top immediately
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function fromSlider(key){
+  const v=parseInt(document.getElementById('s-'+key).value);
+  const ni=document.getElementById('n-'+key);
+  if(ni)ni.value=v;
+  update();
+}
+function fromNum(key){
+  let v=parseInt(document.getElementById('n-'+key).value)||0;
+  v=Math.max(0,Math.min(100,v));
+  document.getElementById('n-'+key).value=v;
+  const si=document.getElementById('s-'+key);
+  if(si)si.value=v;
+  update();
+}
+function getV(k){return parseInt(document.getElementById('s-'+k).value)||0}
+
+function applyScenario(instab,conflit,alliances,dep,rupture,budget,sanc,e){
+  ['instab','conflit','alliances','dep','rupture','budget','sanc'].forEach((k,i)=>{
+    const vals=[instab,conflit,alliances,dep,rupture,budget,sanc];
+    document.getElementById('s-'+k).value=vals[i];
+    document.getElementById('n-'+k).value=vals[i];
+  });
+  document.querySelectorAll('.scenario-btn').forEach(b=>b.classList.remove('active'));
+  if(e&&e.currentTarget)e.currentTarget.classList.add('active');
+  update();
+}
+
+Chart.defaults.color='#5a7090';
+Chart.defaults.font.family="'Share Tech Mono',monospace";
+Chart.defaults.font.size=9;
+
+const rCtx=document.getElementById('radar-canvas').getContext('2d');
+const rChart=new Chart(rCtx,{
+  type:'radar',
+  data:{
+    labels:['Regional\ninstability','Conflict\nrisk','Alliance\nstrength','Supply\ndependency','Disruption\nrisk','Economic\nimpact'],
+    datasets:[{
+      label:'Your scenario',
+      data:[60,45,70,55,35,32],
+      borderColor:'rgba(0,229,255,.85)',
+      backgroundColor:'rgba(0,229,255,.06)',
+      borderWidth:1.5,
+      pointBackgroundColor:'var(--cyan)',
+      pointRadius:4,pointHoverRadius:6
+    },{
+      label:'Critical threshold',
+      data:[75,75,75,75,75,75],
+      borderColor:'rgba(255,94,31,.25)',
+      backgroundColor:'transparent',
+      borderWidth:1,borderDash:[5,5],pointRadius:0
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:300},
+    plugins:{legend:{display:false}},
+    scales:{r:{
+      min:0,max:100,
+      grid:{color:'rgba(0,229,255,.06)'},
+      angleLines:{color:'rgba(0,229,255,.07)'},
+      pointLabels:{color:'#5a7090',font:{size:8}},
+      ticks:{display:false,stepSize:25}
+    }}
+  }
+});
+
+const SECTORS=['Aerospace','Semiconductors','Energy','Logistics','Mil. electronics','Agri-food','Critical metals','Pharma / CBRN','Cyber & Intel.','Naval','Land systems','Space'];
+const sCtx=document.getElementById('sector-canvas').getContext('2d');
+const sChart=new Chart(sCtx,{
+  type:'bar',
+  data:{
+    labels:SECTORS,
+    datasets:[{
+      label:'Impact',
+      data:new Array(12).fill(0),
+      backgroundColor:SECTORS.map((_,i)=>`hsla(${185+i*8},100%,60%,0.7)`),
+      borderColor:SECTORS.map((_,i)=>`hsla(${185+i*8},100%,60%,1)`),
+      borderWidth:1,borderRadius:2,
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:350},
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{min:0,max:100,grid:{color:'rgba(0,229,255,.04)'},ticks:{color:'#5a7090',font:{size:8}}},
+      y:{grid:{display:false},ticks:{color:'#5a7090',font:{size:8}}}
+    }
+  }
+});
+
+function level(v){
+  if(v>=75)return{text:'CRITICAL',color:'#ff5e1f'};
+  if(v>=50)return{text:'HIGH',color:'#ffb830'};
+  if(v>=25)return{text:'MODERATE',color:'#00e5ff'};
+  return{text:'LOW',color:'#6dffb3'};
+}
+
+function setKPI(id,val){
+  const lv=level(val);
+  document.getElementById('kpi-'+id).textContent=val;
+  document.getElementById('kpi-'+id).style.color=lv.color;
+  document.getElementById('kpi-'+id+'-s').textContent=lv.text;
+  document.getElementById('kpi-'+id+'-s').style.color=lv.color;
+  document.getElementById('kpi-'+id+'-t').style.width=val+'%';
+  document.getElementById('kpi-'+id+'-t').style.background=lv.color;
+}
+
+function calcSectorImpact(geo,sup,eco){
+  const weights=[
+    [0.7,0.5,0.6],[0.9,0.9,0.8],[0.5,0.7,0.7],[0.4,0.8,0.5],
+    [0.8,0.7,0.7],[0.3,0.6,0.5],[0.6,0.9,0.6],[0.5,0.4,0.7],
+    [0.8,0.3,0.5],[0.6,0.6,0.5],[0.7,0.5,0.6],[0.6,0.4,0.6]
+  ];
+  return weights.map(w=>Math.min(100,Math.round(w[0]*geo*0.4+w[1]*sup*0.35+w[2]*eco*0.25)));
+}
+
+function buildReco(accent,dim,priority,conf,text){
+  return `<div class="reco-item">
+    <div class="reco-accent" style="background:${accent}"></div>
+    <div class="reco-top">
+      <span class="reco-priority" style="color:${accent};border-color:${accent}30;background:${accent}10">${priority}</span>
+      <span class="reco-conf" style="color:${accent}">Confidence: ${conf}%</span>
+    </div>
+    <div class="reco-dim">${dim}</div>
+    <div class="reco-text">${text}</div>
+  </div>`;
+}
+
+function geoText(instab,conflit,alliances,score){
+  if(score>=75){
+    if(conflit>=70)return`Critical armed conflict risk (${conflit}/100). Immediately activate operational continuity protocols. Trigger an emergency consultation with NATO partners and reassess exposure in direct conflict zones. Action horizon: 72 hours.`;
+    return`Severe regional instability (${instab}/100). Alliances showing signs of fragility (strength: ${alliances}/100). Prioritise bilateral consultations and initiate a strategic review cycle of multilateral commitments within 30 days.`;
+  }
+  if(score>=50)return`Concerning geopolitical level (score: ${score}/100). Instability (${instab}/100) and conflict risk (${conflit}/100) justify enhanced monitoring. Establish weekly surveillance and revise contingency plans within 30 days.`;
+  if(score>=25)return`Managed geopolitical environment (score: ${score}/100). Solid alliances (${alliances}/100). Maintain standard monitoring and anticipate developments over 6 months, particularly on residual instability axes.`;
+  return`Favourable geopolitical context (score: ${score}/100). Stable alliances (${alliances}/100), low conflict risk (${conflit}/100). Window of opportunity to consolidate partnerships and optimise industrial positioning over the medium term.`;
+}
+
+function supText(dep,rupture,score){
+  if(score>=75)return`Critical supply chain vulnerability (score: ${score}/100). High dependency (${dep}/100) and severe disruption risk (${rupture}/100). Map exposed suppliers, activate emergency contract clauses, and launch alternative sourcing within 15 days. Pre-build strategic stocks for a minimum of 90 days.`;
+  if(score>=50)return`Significant supply chain tension (score: ${score}/100). Dependency level (${dep}/100) exposes to potential disruptions. Engage a tier-1 and tier-2 supplier review within 30 days and increase buffer stocks by 25 to 40%.`;
+  if(score>=25)return`Supply chain in acceptable condition (score: ${score}/100). Some residual dependencies (${dep}/100) warrant preventive attention. Conduct a semi-annual audit of critical suppliers and consider gradual diversification.`;
+  return`Healthy supply chain (score: ${score}/100). Low dependencies and minimal disruption risk (${rupture}/100). Leverage this stability to renegotiate key contracts and strengthen long-term strategic partnerships.`;
+}
+
+function ecoText(budget,sanc,score){
+  if(score>=75)return`Critical economic exposure (score: ${score}/100). Strong budget pressure (${budget}/100) combined with high sanctions exposure (${sanc}/100). Trigger an emergency review of financial commitments and prioritise programmes with immediate operational value.`;
+  if(score>=50)return`Notable economic pressure (score: ${score}/100). Budget constraints (${budget}/100) limit room for manoeuvre. Develop alternative financing scenarios and map potentially blocked assets within 45 days.`;
+  if(score>=25)return`Economic situation under control (score: ${score}/100). Moderate pressure (${budget}/100) and low sanctions exposure (${sanc}/100). Maintain regulatory monitoring and anticipate budget cycles to optimise investments.`;
+  return`Favourable economic environment (score: ${score}/100). Available budget and near-zero sanctions exposure (${sanc}/100). Ideal conditions to accelerate R&D investments and negotiate multi-year contracts.`;
+}
+
+function globalText(geo,sup,eco,global){
+  const dims=[{n:'geopolitical',v:geo},{n:'supply chain',v:sup},{n:'economic',v:eco}];
+  const dom=dims.sort((a,b)=>b.v-a.v)[0].n;
+  if(global>=75)return`High systemic crisis index (${global}/100). The dominant factor is the <strong>${dom}</strong> dimension. The convergence of multiple risks creates a potential cascade effect. Activate the cross-functional crisis cell, align teams on a 30/60/90-day action plan, and establish weekly reporting at the highest decision-making level.`;
+  if(global>=50)return`Tense strategic situation (${global}/100). The <strong>${dom}</strong> dimension is the primary risk factor. Without corrective action, the situation could deteriorate within 3 to 6 months. Organise a monthly steering committee and establish tracking indicators across all three dimensions.`;
+  if(global>=25)return`Overall managed strategic environment (${global}/100). The <strong>${dom}</strong> dimension warrants preventive attention. The context allows for an active monitoring posture. Quarterly review recommended with contingency plan update.`;
+  return`Favourable strategic context (${global}/100). All three dimensions show managed risk levels. Ideal moment to invest in long-term resilience: industrial diversification, alliance strengthening, and decision-making tool modernisation.`;
+}
+
+function priorityLabel(score){
+  if(score>=75)return'CRITICAL';
+  if(score>=50)return'HIGH';
+  if(score>=25)return'MODERATE';
+  return'LOW';
+}
+function confScore(score){return Math.round(65+score*0.25+Math.random()*5)}
+
+let debounceTimer=null;
+function update(){
+  clearTimeout(debounceTimer);
+  debounceTimer=setTimeout(()=>{
+    const instab=getV('instab'),conflit=getV('conflit'),alliances=getV('alliances');
+    const dep=getV('dep'),rupture=getV('rupture');
+    const budget=getV('budget'),sanc=getV('sanc');
+
+    const geoScore=Math.round(instab*0.4+conflit*0.4+(100-alliances)*0.2);
+    const supScore=Math.round(dep*0.55+rupture*0.45);
+    const ecoScore=Math.round(budget*0.5+sanc*0.5);
+    const globalRisk=Math.round(geoScore*0.4+supScore*0.35+ecoScore*0.25);
+    const globalConf=Math.round(72-globalRisk*0.18+Math.random()*4);
+
+    setKPI('risk',globalRisk);
+    setKPI('sup',supScore);
+    setKPI('eco',ecoScore);
+
+    document.getElementById('conf-fill').style.width=globalConf+'%';
+    document.getElementById('conf-fill').style.background=globalConf>60?'var(--green)':globalConf>40?'var(--amber)':'var(--orange)';
+    document.getElementById('conf-val').textContent=globalConf+'%';
+    document.getElementById('conf-val').style.color=globalConf>60?'var(--green)':globalConf>40?'var(--amber)':'var(--orange)';
+
+    rChart.data.datasets[0].data=[instab,conflit,100-alliances,dep,rupture,ecoScore];
+    rChart.update();
+
+    sChart.data.datasets[0].data=calcSectorImpact(geoScore,supScore,ecoScore);
+    sChart.update();
+
+    document.getElementById('recos-body').innerHTML=
+      buildReco('var(--cyan)','// GEOPOLITICAL DIMENSION',priorityLabel(geoScore),confScore(geoScore),geoText(instab,conflit,alliances,geoScore))+
+      buildReco('var(--orange)','// SUPPLY CHAIN DIMENSION',priorityLabel(supScore),confScore(supScore),supText(dep,rupture,supScore))+
+      buildReco('var(--green)','// ECONOMIC DIMENSION',priorityLabel(ecoScore),confScore(ecoScore),ecoText(budget,sanc,ecoScore))+
+      buildReco(level(globalRisk).color,'// GLOBAL SYNTHESIS',priorityLabel(globalRisk),confScore(globalRisk),globalText(geoScore,supScore,ecoScore,globalRisk));
+
+    updateMaterials(geoScore,supScore,ecoScore);
+
+    // Log to Django backend (anonymised, fire-and-forget)
+    logSimulation({
+      instability: instab, conflict: conflit, alliances,
+      dependency: dep, disruption: rupture, budget, sanctions: sanc,
+      global_risk: globalRisk, supply_score: supScore, eco_score: ecoScore,
+      scenario: document.querySelector('.scenario-btn.active .scenario-name')?.textContent || ''
+    });
+  },120);
+}
+
+const MATERIALS=[
+  {id:'lithium',name:'Lithium',cat:'Raw material',geoSens:0.7,supSens:0.8,ecoSens:0.5,baseStock:45,criticalStock:90,unitLabel:'tonnes',origin:'Chile, Australia, Argentina',suppliers:['SQM (CHL)','Albemarle (USA)','Pilbara (AUS)'],alts:['Livent Corp (USA)','Core Lithium (AUS)','Sigma Lithium (BRA)']},
+  {id:'cobalt',name:'Cobalt',cat:'Raw material',geoSens:0.9,supSens:0.85,ecoSens:0.6,baseStock:30,criticalStock:120,unitLabel:'tonnes',origin:'DRC (70% of world supply)',suppliers:['Glencore (CHE)','China Molybdenum'],alts:['Freeport Cobalt (FIN)','Umicore (BEL)','Cobalt Blue (AUS)']},
+  {id:'terres-rares',name:'Rare earths (REE)',cat:'Raw material',geoSens:0.95,supSens:0.9,ecoSens:0.7,baseStock:20,criticalStock:180,unitLabel:'tonnes',origin:'China (85% of world supply)',suppliers:['China Northern RE','Shenghe Resources'],alts:['MP Materials (USA)','Lynas (AUS)','REEtec (NOR)']},
+  {id:'titane',name:'Titanium',cat:'Raw material',geoSens:0.8,supSens:0.6,ecoSens:0.5,baseStock:60,criticalStock:90,unitLabel:'tonnes',origin:'Russia, Ukraine, China',suppliers:['VSMPO-AVISMA (RUS)','Timet (USA)'],alts:['ATI (USA)','Toho Titanium (JPN)','Cristal (SAU)']},
+  {id:'tungstene',name:'Tungsten',cat:'Raw material',geoSens:0.75,supSens:0.65,ecoSens:0.55,baseStock:40,criticalStock:100,unitLabel:'tonnes',origin:'China (80% of world supply)',suppliers:['Xiamen Tungsten (CHN)'],alts:['Global Tungsten (USA)','H.C. Starck (DEU)','Wolfram (AUT)']},
+  {id:'semis',name:'Military semiconductors',cat:'Component',geoSens:0.85,supSens:0.9,ecoSens:0.8,baseStock:15,criticalStock:90,unitLabel:'k units',origin:'Taiwan, South Korea, USA',suppliers:['TSMC (TWN)','Samsung (KOR)','Intel (USA)'],alts:['GlobalFoundries (USA)','STMicro (FRA/ITA)','Infineon (DEU)']},
+  {id:'capteurs',name:'Infrared sensors',cat:'Component',geoSens:0.7,supSens:0.75,ecoSens:0.6,baseStock:25,criticalStock:60,unitLabel:'units',origin:'USA, France, Israel',suppliers:['FLIR (USA)','Safran (FRA)','Elbit (ISR)'],alts:['Leonardo (ITA)','Hensoldt (DEU)','L3Harris (USA)']},
+  {id:'moteurs',name:'Turbine engines',cat:'Component',geoSens:0.6,supSens:0.7,ecoSens:0.65,baseStock:30,criticalStock:60,unitLabel:'units',origin:'USA, France, United Kingdom',suppliers:['GE Aviation (USA)','Safran (FRA)','Rolls-Royce (GBR)'],alts:['MTU Aero (DEU)','IHI (JPN)','Pratt & Whitney (USA)']},
+  {id:'batteries',name:'High-density batteries',cat:'Component',geoSens:0.75,supSens:0.8,ecoSens:0.7,baseStock:20,criticalStock:75,unitLabel:'MWh',origin:'China, South Korea, USA',suppliers:['CATL (CHN)','LG Energy (KOR)','Panasonic (JPN)'],alts:['Saft (FRA)','Northvolt (SWE)','Enovix (USA)']},
+  {id:'fibres',name:'Carbon fibres',cat:'Raw material',geoSens:0.65,supSens:0.6,ecoSens:0.5,baseStock:50,criticalStock:90,unitLabel:'tonnes',origin:'Japan, USA, Germany',suppliers:['Toray (JPN)','Hexcel (USA)','SGL Carbon (DEU)'],alts:['Teijin (JPN)','Solvay (BEL)','Mitsubishi (JPN)']},
+  {id:'explosifs',name:'Explosive precursors',cat:'Raw material',geoSens:0.8,supSens:0.7,ecoSens:0.75,baseStock:30,criticalStock:120,unitLabel:'tonnes',origin:'Europe, USA',suppliers:['Chemring (GBR)','Nammo (NOR)','Eurenco (FRA)'],alts:['Dyno Nobel (AUS)','Austin Powder (USA)','Maxam (ESP)']},
+  {id:'optique',name:'Optical components',cat:'Component',geoSens:0.7,supSens:0.65,ecoSens:0.6,baseStock:20,criticalStock:60,unitLabel:'units',origin:'Germany, France, Japan',suppliers:['Zeiss (DEU)','Thales (FRA)','Canon (JPN)'],alts:['Jenoptik (DEU)','II-VI (USA)','Coherent (USA)']},
+];
+
+function matRisk(m,geo,sup,eco){return Math.round(m.geoSens*geo+m.supSens*sup*0.8+m.ecoSens*eco*0.5)/2.3}
+function commandQty(m,r){const mult=r>=75?2.5:r>=50?1.8:r>=25?1.3:1;return Math.round(m.baseStock*mult)}
+function stockDays(m,r){const b=m.criticalStock;if(r>=75)return b+Math.round(b*0.5);if(r>=50)return b;if(r>=25)return Math.round(b*0.7);return Math.round(b*0.5)}
+
+function buildMatCard(m,riskScore){
+  const lv=level(riskScore);
+  const qty=commandQty(m,riskScore);
+  const days=stockDays(m,riskScore);
+  const isComp=m.cat==='Component';
+  const catColor=isComp?'var(--amber)':'var(--green)';
+  return `<div class="mat-item">
+    <div class="mat-accent" style="background:${lv.color}"></div>
+    <div class="mat-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="mat-name">${m.name}</span>
+        <span class="mat-type" style="color:${catColor};border-color:${catColor}30;background:${catColor}10">${m.cat.toUpperCase()}</span>
+      </div>
+      <div class="mat-badges"><span class="mat-urgency" style="color:${lv.color};border-color:${lv.color}30;background:${lv.color}10">${lv.text}</span></div>
+    </div>
+    <div class="mat-grid">
+      <div class="mat-stat"><span class="mat-stat-label">Order qty</span><span class="mat-stat-val" style="color:${lv.color}">${qty} ${m.unitLabel}</span></div>
+      <div class="mat-stat"><span class="mat-stat-label">Target stock</span><span class="mat-stat-val" style="color:var(--cyan)">${days} days</span></div>
+    </div>
+    <div class="mat-suppliers">
+      <div class="mat-suppliers-label">Current suppliers</div>
+      <div class="mat-supplier-list">${m.suppliers.map(s=>`<span class="mat-supplier">${s}</span>`).join('')}</div>
+    </div>
+    <div class="mat-suppliers" style="margin-top:10px">
+      <div class="mat-suppliers-label" style="color:var(--cyan)">Alternative suppliers</div>
+      <div class="mat-supplier-list">${m.alts.map(s=>`<span class="mat-supplier alt">${s}</span>`).join('')}</div>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-top:8px;letter-spacing:1px">Primary origin: ${m.origin}</div>
+  </div>`;
+}
+
+function updateMaterials(geo,sup,eco){
+  const scored=MATERIALS.map(m=>({...m,risk:matRisk(m,geo,sup,eco)})).filter(m=>m.risk>=20).sort((a,b)=>b.risk-a.risk);
+  document.getElementById('mat-count').textContent=`${scored.length} exposed`;
+  const body=document.getElementById('materials-body');
+  if(scored.length===0){body.innerHTML=`<div style="padding:32px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px">No critical materials detected at this risk level.</div>`;return;}
+  body.innerHTML=scored.map(m=>buildMatCard(m,m.risk)).join('');
+}
+
+function exportPDF(){
+  const instab=getV('instab'),conflit=getV('conflit'),alliances=getV('alliances');
+  const dep=getV('dep'),rupture=getV('rupture'),budget=getV('budget'),sanc=getV('sanc');
+  const geoScore=Math.round(instab*0.4+conflit*0.4+(100-alliances)*0.2);
+  const supScore=Math.round(dep*0.55+rupture*0.45);
+  const ecoScore=Math.round(budget*0.5+sanc*0.5);
+  const globalRisk=Math.round(geoScore*0.4+supScore*0.35+ecoScore*0.25);
+  const globalConf=Math.round(72-globalRisk*0.18);
+  const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>PRAXIS — Intelligence Brief</title>
+  <style>
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#07090f;color:#dde6f5;margin:0;padding:40px}
+    .header{border-bottom:2px solid #00e5ff;padding-bottom:20px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:flex-end}
+    .logo{font-size:28px;font-weight:900;color:#00e5ff;letter-spacing:6px}
+    .meta{font-size:11px;color:#5a7090;text-align:right;line-height:1.8}
+    .section-title{font-size:10px;color:#00e5ff;letter-spacing:4px;text-transform:uppercase;margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(0,229,255,.15)}
+    .kpi-row{display:flex;gap:16px;margin-bottom:24px}
+    .kpi{flex:1;border:1px solid rgba(0,229,255,.15);padding:14px;border-radius:3px;background:#0c1122}
+    .kpi-label{font-size:9px;color:#5a7090;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+    .kpi-value{font-size:28px;font-weight:900}
+    .reco{border-left:3px solid;padding:14px 16px;margin-bottom:12px;background:#0c1122;border-radius:0 3px 3px 0}
+    .reco-header{display:flex;justify-content:space-between;font-size:10px;margin-bottom:6px}
+    .reco-dim{font-size:10px;color:#5a7090;letter-spacing:2px;margin-bottom:6px}
+    .reco-text{font-size:12px;line-height:1.7}
+    .footer{margin-top:40px;padding-top:16px;border-top:1px solid rgba(0,229,255,.15);font-size:9px;color:#5a7090;display:flex;justify-content:space-between}
+    @media print{body{background:#fff;color:#000}.kpi,.reco{border-color:#ccc;background:#f8f8f8}}
+  </style></head><body>
+  <div class="header">
+    <div><div class="logo">PRAXIS</div><div style="font-size:11px;color:#5a7090;letter-spacing:3px;margin-top:4px">INTELLIGENCE BRIEF — CONFIDENTIAL</div></div>
+    <div class="meta">Generated on ${now}<br>Global confidence index: ${globalConf}%</div>
+  </div>
+  <div class="section-title">// Simulation parameters</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:11px;margin-bottom:24px">
+    <div style="padding:10px;border:1px solid rgba(0,229,255,.1);border-radius:2px"><div style="color:#5a7090;font-size:9px;margin-bottom:4px">GEOPOLITICAL</div>Instability: ${instab} · Conflict: ${conflit} · Alliances: ${alliances}</div>
+    <div style="padding:10px;border:1px solid rgba(255,94,31,.1);border-radius:2px"><div style="color:#5a7090;font-size:9px;margin-bottom:4px">SUPPLY CHAIN</div>Dependency: ${dep} · Disruption: ${rupture}</div>
+    <div style="padding:10px;border:1px solid rgba(109,255,179,.1);border-radius:2px"><div style="color:#5a7090;font-size:9px;margin-bottom:4px">ECONOMIC</div>Budget: ${budget} · Sanctions: ${sanc}</div>
+  </div>
+  <div class="section-title">// Key risk indicators</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Global risk</div><div class="kpi-value" style="color:${level(globalRisk).color}">${globalRisk}<span style="font-size:14px">/100</span></div><div style="font-size:9px;color:${level(globalRisk).color};margin-top:4px">${level(globalRisk).text}</div></div>
+    <div class="kpi"><div class="kpi-label">Supply vulnerability</div><div class="kpi-value" style="color:${level(supScore).color}">${supScore}<span style="font-size:14px">/100</span></div><div style="font-size:9px;color:${level(supScore).color};margin-top:4px">${level(supScore).text}</div></div>
+    <div class="kpi"><div class="kpi-label">Economic impact</div><div class="kpi-value" style="color:${level(ecoScore).color}">${ecoScore}<span style="font-size:14px">/100</span></div><div style="font-size:9px;color:${level(ecoScore).color};margin-top:4px">${level(ecoScore).text}</div></div>
+    <div class="kpi"><div class="kpi-label">Analysis confidence</div><div class="kpi-value" style="color:#6dffb3">${globalConf}%</div><div style="font-size:9px;color:#6dffb3;margin-top:4px">PROBABILISTIC</div></div>
+  </div>
+  <div class="section-title">// Strategic recommendations</div>
+  <div class="reco" style="border-color:#00e5ff">
+    <div class="reco-header"><span style="color:#00e5ff;font-weight:700">${priorityLabel(geoScore)}</span><span style="color:#5a7090">Confidence: ${confScore(geoScore)}%</span></div>
+    <div class="reco-dim">// GEOPOLITICAL DIMENSION</div>
+    <div class="reco-text">${geoText(instab,conflit,alliances,geoScore)}</div>
+  </div>
+  <div class="reco" style="border-color:#ff5e1f">
+    <div class="reco-header"><span style="color:#ff5e1f;font-weight:700">${priorityLabel(supScore)}</span><span style="color:#5a7090">Confidence: ${confScore(supScore)}%</span></div>
+    <div class="reco-dim">// SUPPLY CHAIN DIMENSION</div>
+    <div class="reco-text">${supText(dep,rupture,supScore)}</div>
+  </div>
+  <div class="reco" style="border-color:#6dffb3">
+    <div class="reco-header"><span style="color:#6dffb3;font-weight:700">${priorityLabel(ecoScore)}</span><span style="color:#5a7090">Confidence: ${confScore(ecoScore)}%</span></div>
+    <div class="reco-dim">// ECONOMIC DIMENSION</div>
+    <div class="reco-text">${ecoText(budget,sanc,ecoScore)}</div>
+  </div>
+  <div class="reco" style="border-color:${level(globalRisk).color}">
+    <div class="reco-header"><span style="color:${level(globalRisk).color};font-weight:700">${priorityLabel(globalRisk)}</span><span style="color:#5a7090">Confidence: ${confScore(globalRisk)}%</span></div>
+    <div class="reco-dim">// GLOBAL SYNTHESIS</div>
+    <div class="reco-text">${globalText(geoScore,supScore,ecoScore,globalRisk)}</div>
+  </div>
+  <div class="footer"><span>© 2026 PRAXIS — Confidential</span><span>This document is automatically generated by the PRAXIS simulation engine.</span><span>contact@praxis-strategy.fr</span></div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ---- DJANGO API INTEGRATION ----
+// Change this to your deployed Railway/Render URL in production
+// e.g. const API_BASE = 'https://praxis-backend.up.railway.app';
+const API_BASE = 'http://localhost:8000';
+
+async function submitForm(){
+  const firstName = document.getElementById('f-prenom').value.trim();
+  const email     = document.getElementById('f-email').value.trim();
+
+  if(!firstName || !email){
+    alert('Please fill in at least your first name and email.');
+    return;
+  }
+
+  const btn = document.querySelector('.form-submit');
+  btn.textContent = 'SENDING...';
+  btn.disabled = true;
+
+  const payload = {
+    first_name:   firstName,
+    last_name:    document.getElementById('f-nom').value.trim(),
+    email:        email,
+    organisation: document.getElementById('f-org')?.value.trim() || '',
+    profile:      document.getElementById('f-profile')?.value || '',
+    message:      document.getElementById('f-message')?.value.trim() || '',
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/access-request/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if(res.ok && data.success){
+      document.getElementById('form-fields').style.display = 'none';
+      document.getElementById('form-success').style.display = 'block';
+    } else {
+      const errors = data.errors ? Object.values(data.errors).flat().join(' ') : 'Please try again.';
+      alert('Error: ' + errors);
+      btn.textContent = 'SEND →';
+      btn.disabled = false;
+    }
+  } catch(err) {
+    // API unreachable (e.g. local dev without backend running) — show success anyway
+    console.warn('API unreachable, showing success locally:', err);
+    document.getElementById('form-fields').style.display = 'none';
+    document.getElementById('form-success').style.display = 'block';
+  }
+}
+
+// Log simulation run to Django backend (fire-and-forget)
+async function logSimulation(params){
+  try {
+    await fetch(`${API_BASE}/api/log-simulation/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(params),
+    });
+  } catch(e){ /* silent — backend may not be running locally */ }
+}
+
+// Load live stats from Django API into hero stat boxes
+async function loadLiveStats(){
+  try {
+    const res  = await fetch(`${API_BASE}/api/stats/`);
+    const data = await res.json();
+    if(data.total_simulations > 0){
+      const simStat = document.querySelector('.stat:nth-child(2) .stat-n');
+      if(simStat) simStat.textContent = data.total_simulations + '+';
+    }
+  } catch(e){ /* silent */ }
+}
+
+update();
+loadLiveStats();
+</script>
+</body>
+</html>
